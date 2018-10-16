@@ -21,6 +21,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.itpvt.whatsappclone.Chat.ChatListAdapter;
 import com.itpvt.whatsappclone.Chat.ChatObject;
+import com.itpvt.whatsappclone.Utilities.Utils.SendNotification;
+import com.onesignal.OneSignal;
 
 import java.util.ArrayList;
 
@@ -37,6 +39,19 @@ Button Logout;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_page);
 
+        OneSignal.startInit(this).init();
+        OneSignal.setSubscription(true);
+        OneSignal.idsAvailable(new OneSignal.IdsAvailableHandler() {
+            @Override
+            public void idsAvailable(String userId, String registrationId) {
+                FirebaseDatabase.getInstance().getReference().child("user").child(FirebaseAuth.getInstance().getUid()).child("notificationKey").setValue(userId);
+            }
+        });
+        OneSignal.setInFocusDisplaying(OneSignal.OSInFocusDisplayOption.Notification);
+
+        new SendNotification("message 1", "heading 1", null);
+
+
         Fresco.initialize(this);
         Logout=(Button)findViewById(R.id.logout);
         Button mFindUser = findViewById(R.id.findUser);
@@ -50,6 +65,7 @@ Button Logout;
         Logout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                OneSignal.setSubscription(false);
                 FirebaseAuth.getInstance().signOut();
                 Intent intent=new Intent(getApplicationContext(),VerifyPhoneActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
